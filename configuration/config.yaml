@@ -1,0 +1,11 @@
+---
+database:
+  user: "admin"
+  pass: "admin"
+  host: "localhost"
+  port: 5432
+  dbName: "sources"
+
+httpServer:
+  host: "localhost"
+  port: ":12345"
