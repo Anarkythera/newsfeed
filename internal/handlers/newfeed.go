@@ -9,6 +9,7 @@ import (
 
 type NewsHandler interface {
 	GetNews(c echo.Context) error
+	GetFilteredNews(c echo.Context) error
 }
 
 type newsHandler struct {
@@ -23,4 +24,10 @@ func NewHandler(svc news.Service) NewsHandler {
 
 func (h *newsHandler) GetNews(c echo.Context) error {
 	return c.XML(http.StatusOK, "hello")
+}
+
+func (h *newsHandler) GetFilteredNews(c echo.Context) error {
+	list, _ := h.news.NewsSourceFilter(0, 5, "TBD")
+
+	return c.JSON(http.StatusOK, list)
 }

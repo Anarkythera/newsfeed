@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"time"
 	"ziglunewsletter/internal/configuration"
@@ -9,9 +8,7 @@ import (
 	"ziglunewsletter/internal/handlers"
 	"ziglunewsletter/internal/news"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/mmcdole/gofeed"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -40,38 +37,14 @@ func main() {
 
 	log.Info().Msg("Starting news app server")
 
-	newsService.GetNewsFromSources(0, 10)
+	newsService.GetNewsFromAllSources(0, 10)
+	//newsService.NewsSourceFilter(0, 5, "TBD")
 
 	e.GET("/GetNews", handler.GetNews)
+	e.GET("/GetFilteredNews", handler.GetFilteredNews)
 
 	// Get news and cache them
 	if err := e.Start(cfg.GetString("httpServer.port")); err != nil {
 		log.Fatal().Err(err).Msg("Error starting http server")
-	}
-}
-
-func getNews() {
-	feedItemsList := []*gofeed.Item{}
-	client := resty.New()
-	resp, _ := client.R().Get("http://feeds.skynews.com/feeds/rss/uk.xml")
-	fmt.Println("Response Info:")
-	fmt.Println("  Body       :\n", string(resp.Body()))
-	fmt.Println()
-
-	fp := gofeed.NewParser()
-	feed, _ := fp.ParseURL("http://feeds.skynews.com/feeds/rss/uk.xml")
-	fmt.Println("Channel: ", feed.Title)
-
-	feedItemsList = append(feedItemsList, feed.Items...)
-
-	fp2 := gofeed.NewParser()
-	feed2, _ := fp2.ParseURL("http://feeds.bbci.co.uk/news/uk/rss.xml")
-
-	fmt.Println("Channel: ", feed2.Title)
-
-	feedItemsList = append(feedItemsList, feed2.Items...)
-
-	for _, item := range feedItemsList {
-		fmt.Println(item.Title)
 	}
 }

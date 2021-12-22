@@ -11,6 +11,6 @@ type Service interface {
 
 type service struct {
 	mu   sync.RWMutex
-	news []*model.News
+	news []*model.Item
 	dao  *news.Dao
 }
