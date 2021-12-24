@@ -11,7 +11,8 @@ import (
 type Dao interface {
 	GetNewsSources() ([]model.Sources, error)
 	InsertNews(model.News) error
-	FilterNewsBySource(page, pageSize int, newsSource string) ([]model.News, error)
+	GetNewsFromAllSources(page, pageSize int) ([]model.News, error)
+	FilterNewsBySource(page, pageSize int, newsSource []string) ([]model.News, error)
 	GetMostRecentNewsDate() (time.Time, error)
 }
 
@@ -34,23 +35,33 @@ func (d *dao) GetNewsSources() ([]model.Sources, error) {
 	return sourceURL, errors.Wrapf(err, "Error retrieving news sources from the database")
 }
 
+func (d *dao) GetNewsFromAllSources(page, pageSize int) ([]model.News, error) {
+	news := []model.News{}
+
+	query := "SELECT * FROM news ORDER BY publish_date LIMIT ? OFFSET ?"
+	err := d.db.Select(&news, d.db.Rebind(query), pageSize, page)
+
+	return news, errors.Wrapf(err, "Error fetching news from all sources from DB")
+}
+
 func (d *dao) InsertNews(news model.News) error {
-	stmt, err := d.db.Preparex("INSERT INTO news (url, title, rss_source, publish_date) VALUES ($1,$2,$3,$4)")
+	stmt, err := d.db.Preparex("INSERT INTO news (url, title, provider, category, publish_date, thumbnail) VALUES ($1,$2,$3,$4,$5,$6)")
 	if err != nil {
 		return errors.Wrapf(err, "Error preparing the sql statement")
 	}
 
 	defer stmt.Close()
-	_, err = stmt.Exec(news.Url, news.Title, news.Source, news.PublishDate)
+	_, err = stmt.Exec(news.URL, news.Title, news.Provider, news.Category, news.PublishDate, news.Thumbnail)
 
 	return errors.Wrapf(err, "Error inserting the record in the database")
 }
 
-func (d *dao) FilterNewsBySource(page, pageSize int, newsSource string) ([]model.News, error) {
+func (d *dao) FilterNewsBySource(page, pageSize int, newsSource []string) ([]model.News, error) {
 	news := []model.News{}
 
-	query := "SELECT * FROM news WHERE rss_source=? LIMIT ? OFFSET ?"
-	err := d.db.Select(&news, d.db.Rebind(query), newsSource, pageSize, page)
+	query, queryArgs, _ := sqlx.In("SELECT * FROM news WHERE rss_source IN (?) ORDER BY publish_date DESC LIMIT ? OFFSET ? ", newsSource, pageSize, page)
+
+	err := d.db.Select(&news, d.db.Rebind(query), queryArgs...)
 
 	return news, errors.Wrapf(err, "Error while filtering the news from the DB")
 }
@@ -61,5 +72,5 @@ func (d *dao) GetMostRecentNewsDate() (time.Time, error) {
 	query := "SELECT * FROM news ORDER BY publish_date DESC LIMIT 1"
 	err := d.db.Get(&news, query)
 
-	return news.PublishDate, err
+	return news.PublishDate, errors.Wrapf(err, "Error fetching most recent news")
 }

@@ -3,6 +3,7 @@ module ziglunewsletter
 go 1.16
 
 require (
+	github.com/go-playground/validator/v10 v10.9.0 // indirect
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/jackc/pgx/v4 v4.14.1
 	github.com/jmoiron/sqlx v1.3.4
