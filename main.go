@@ -1,12 +1,12 @@
 package main
 
 import (
+	"newsletter/internal/configuration"
+	"newsletter/internal/database"
+	"newsletter/internal/handlers"
+	"newsletter/internal/news"
 	"os"
 	"time"
-	"ziglunewsletter/internal/configuration"
-	"ziglunewsletter/internal/database"
-	"ziglunewsletter/internal/handlers"
-	"ziglunewsletter/internal/news"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -26,13 +26,14 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 
 // First version of newsapp
 func main() {
-	cfg := configuration.ReadConf()
+	cfg := configuration.ReadConf(os.Getenv("CONFIG_FILE_LOCATION"), os.Getenv("CONFIG_FILE_NAME"))
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 	log.Logger = log.With().Caller().Stack().Logger()
 
-	dsn := database.BuildDSN(cfg.GetString("database.user"), cfg.GetString("database.pass"), cfg.GetString("database.host"), cfg.GetInt("database.port"), cfg.GetString("database.dbName"))
+	dsn := database.BuildDSN(cfg.GetString("database.user"), cfg.GetString("database.pass"), os.Getenv("DATABASE_HOST"), cfg.GetInt("database.port"), cfg.GetString("database.dbName"))
 	dbx := database.ConnectDB(dsn)
 
 	newsDao := news.NewDao(dbx)
@@ -50,13 +51,9 @@ func main() {
 
 	e.Validator = &CustomValidator{validator: validator.New()}
 
-	//newsService.GetNewsFromAllSources(0, 10)
-	//newsService.NewsSourceFilter(0, 5, "TBD")
+	e.GET("/v1/GetNews", handler.GetNews)
+	e.GET("/v1/GetFilteredNews", handler.GetFilteredNews)
 
-	e.GET("/GetNews", handler.GetNews)
-	e.GET("/GetFilteredNews", handler.GetFilteredNews)
-
-	// Get news and cache them
 	if err := e.Start(cfg.GetString("httpServer.port")); err != nil {
 		log.Fatal().Err(err).Msg("Error starting http server")
 	}

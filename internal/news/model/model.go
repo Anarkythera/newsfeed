@@ -18,12 +18,12 @@ type Sources struct {
 type News struct {
 	ID          int64          `db:"id"`
 	CreatedAt   time.Time      `db:"created_at"`
-	URL         string         `db:"url"`
-	Title       string         `db:"title"`
-	Provider    string         `db:"provider"`
-	Category    string         `db:"category"`
-	PublishDate time.Time      `db:"publish_date"`
-	Thumbnail   sql.NullString `db:"thumbnail"`
+	URL         string         `db:"url" json:"url"`
+	Title       string         `db:"title" json:"title"`
+	Provider    string         `db:"provider" json:"provider"`
+	Category    string         `db:"category" json:"category"`
+	PublishDate time.Time      `db:"publish_date" json:"publishDate"`
+	Thumbnail   sql.NullString `db:"thumbnail" json:"thumbnail"`
 }
 
 type RssItem struct {
@@ -32,12 +32,13 @@ type RssItem struct {
 }
 
 type NewsRequest struct {
-	Page     *int `json:"page" validate:"required"`
-	PageSize *int `json:"pageSize" validate:"required"`
+	Page     *int `query:"page" validate:"required"`
+	PageSize *int `query:"pageSize" validate:"required"`
 }
 
 type NewsRequestSourceFilter struct {
-	Page       *int     `json:"page" validate:"required"`
-	PageSize   *int     `json:"pageSize" validate:"required"`
-	NewsSource []string `json:"newsSource" validate:"required"`
+	Page     *int     `query:"page" validate:"required"`
+	PageSize *int     `query:"pageSize" validate:"required"`
+	Category []string `query:"category" validate:"required"`
+	Provider []string `query:"provider" validate:"required"`
 }

@@ -7,4 +7,4 @@ database:
 
 httpServer:
   host: "localhost"
-  port: ":12345"
+  port: ":54321"

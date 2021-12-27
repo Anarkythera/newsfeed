@@ -1,8 +1,8 @@
 package news
 
 import (
+	"newsletter/internal/news/model"
 	"time"
-	"ziglunewsletter/internal/news/model"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -12,7 +12,7 @@ type Dao interface {
 	GetNewsSources() ([]model.Sources, error)
 	InsertNews(model.News) error
 	GetNewsFromAllSources(page, pageSize int) ([]model.News, error)
-	FilterNewsBySource(page, pageSize int, newsSource []string) ([]model.News, error)
+	FilterNewsBySource(page, pageSize int, provider []string, category []string) ([]model.News, error)
 	GetMostRecentNewsDate() (time.Time, error)
 }
 
@@ -56,12 +56,15 @@ func (d *dao) InsertNews(news model.News) error {
 	return errors.Wrapf(err, "Error inserting the record in the database")
 }
 
-func (d *dao) FilterNewsBySource(page, pageSize int, newsSource []string) ([]model.News, error) {
+func (d *dao) FilterNewsBySource(page, pageSize int, provider []string, category []string) ([]model.News, error) {
 	news := []model.News{}
 
-	query, queryArgs, _ := sqlx.In("SELECT * FROM news WHERE rss_source IN (?) ORDER BY publish_date DESC LIMIT ? OFFSET ? ", newsSource, pageSize, page)
+	query, queryArgs, err := sqlx.In("SELECT * FROM news WHERE provider IN (?) AND category IN (?) ORDER BY publish_date DESC LIMIT ? OFFSET ? ", provider, category, pageSize, page)
+	if err != nil {
+		errors.Wrapf(err, "Error while creating the query string")
+	}
 
-	err := d.db.Select(&news, d.db.Rebind(query), queryArgs...)
+	err = d.db.Select(&news, d.db.Rebind(query), queryArgs...)
 
 	return news, errors.Wrapf(err, "Error while filtering the news from the DB")
 }

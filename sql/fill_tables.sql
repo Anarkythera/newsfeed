@@ -4,4 +4,5 @@ INSERT INTO
     sources (url, provider, category)
 VALUES
     ('http://feeds.bbci.co.uk/news/uk/rss.xml', 'BBC News', 'UK'),
-    ('http://feeds.skynews.com/feeds/rss/uk.xml','SkyNews', 'UK');
+    ('http://feeds.skynews.com/feeds/rss/uk.xml','SkyNews', 'UK'),
+    ('http://feeds.bbci.co.uk/news/technology/rss.xml','BBC News', 'Technology')

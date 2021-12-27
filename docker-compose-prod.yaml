@@ -13,30 +13,16 @@ services:
       POSTGRES_USER: "admin"
       POSTGRES_DB: "newsfeed"
 
-  db-test:
-    image: postgres:14
-    ports:
-      - "5433:5432"
-    volumes:
-      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
-      - ./sql/fill_tables_test.sql:/docker-entrypoint-initdb.d/fill_tables_test.sql
-    environment:
-      POSTGRES_PASSWORD: "admin"
-      POSTGRES_USER: "admin"
-      POSTGRES_DB: "newsfeed"
   newsfeed:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile_production
     depends_on:
       - db
-      - db-test
     ports:
       - "12345:12345"
-    #restart: always
+    restart: always
     environment:
       - CONFIG_FILE_LOCATION=./configuration/
       - CONFIG_FILE_NAME=config.yaml
-      - CONFIG_FILE_TEST_LOCATION=../../configuration/
-      - CONFIG_FILE_TEST_NAME=config_test.yaml
-      - DATABASE_HOST=db-test
+      - DATABASE_HOST=db

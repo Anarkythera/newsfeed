@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"net/http"
-	"ziglunewsletter/internal/news"
-	"ziglunewsletter/internal/news/model"
+	"newsletter/internal/news"
+	"newsletter/internal/news/model"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -29,11 +29,13 @@ func (h *newsHandler) GetNews(c echo.Context) error {
 
 	if err := (&echo.DefaultBinder{}).Bind(params, c); err != nil {
 		log.Error().Err(err).Msg("Failed to bind request to project struct")
+
 		return c.JSON(http.StatusInternalServerError, "Wrong types of project fields")
 	}
 
 	if err := c.Validate(params); err != nil {
 		log.Error().Err(err).Msg("One or more required fields are not in the request")
+
 		return c.JSON(http.StatusInternalServerError, "Wrong types of project fields")
 	}
 
@@ -51,7 +53,7 @@ func (h *newsHandler) GetFilteredNews(c echo.Context) error {
 	params := new(model.NewsRequestSourceFilter)
 
 	if err := (&echo.DefaultBinder{}).Bind(params, c); err != nil {
-		log.Error().Err(err).Msg("Failed to bind request to project struct")
+		log.Error().Err(err).Msgf("Failed to bind request to project struct %v", err)
 
 		return c.JSON(http.StatusInternalServerError, "Wrong types of project fields")
 	}
@@ -62,7 +64,8 @@ func (h *newsHandler) GetFilteredNews(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "Wrong types of project fields")
 	}
 
-	news, err := h.news.NewsSourceFilter(*params.Page, *params.PageSize, params.NewsSource)
+	news, err := h.news.NewsSourceFilter(*params.Page, *params.PageSize, params.Provider, params.Category)
+
 	if err != nil {
 		log.Error().Err(err).Msg("Error while filtering news")
 
